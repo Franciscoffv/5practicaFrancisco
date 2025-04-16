@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/plantilla :: head}">
+    <title>PracticaFrancisco</title>
+</head>
+<body style="height: 100%; overflow-y: scroll;">
+    <!-- 1 Botón de agregar -->
+    <section th:fragment="botonesAgregar" class="py-4 mb-4 bg-primary">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3">   
+                    <button 
+                        type="button" 
+                        sec:authorize="hasRole('ROLE_ADMIN')"
+                        class="btn btn-outline-light btn-block" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#agregarCategoria">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2 Modal para agregar -->
+    <section th:fragment="agregarCategoria">
+        <div id="agregarCategoria" class="modal fade" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">Agregar</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div> 
+                    <form th:action="@{/categoria/guardar}" th:object="${categoria}"
+                          method="POST" class="was-validated" enctype="multipart/form-data">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="descripcion">Descripción</label>
+                                <input type="text" class="form-control" name="descripcion" required="true"/>
+                            </div>
+                            <div class="mb-3">
+                                <label for="activo">Activo</label>
+                                <input class="form-check-input" type="checkbox" name="activo" id="activo"/>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" type="submit">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3 Listado de categorías -->
+    <section th:fragment="listadoCategorias" id="categorias">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h4>Categorías</h4>
+                        </div>
+                        <div style="max-height: 500px; overflow-y: auto;">
+                            <div th:if="${categorias != null and !categorias.empty}">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Descripción</th>
+                                            <th>Estado</th>
+                                            <th>Acciones</th>
+                                            <th sec:authorize="hasRole('ROLE_ADMIN')"></th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="categoria, contador : ${categorias}">
+                                            <td>[[${contador.count}]]</td>
+                                            <td>[[${categoria.descripcion}]]</td>
+                                            <td th:text="${categoria.activo} ? 'Activa' : 'Inactiva'" />
+                                            <td sec:authorize="hasRole('ROLE_ADMIN')">
+                                                <a th:href="@{/categoria/eliminar/}+${categoria.idCategoria}" class="btn btn-outline-danger">
+                                                    <i class="fas fa-trash"></i> Eliminar
+                                                </a>
+                                                <a th:href="@{/categoria/modificar/}+${categoria.idCategoria}" class="btn btn-outline-primary">
+                                                    <i class="fas fa-pencil"></i> Actualizar
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center p-2" th:if="${categorias == null or categorias.empty}">
+                                <span>Lista vacía</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 Fragmento para editar categoría -->
+    <section th:fragment="editarCategoria">
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+                <form method="POST"
+                      th:action="@{/categoria/guardar}" 
+                      th:object="${categoria}"
+                      class="was-validated"                          
+                      enctype="multipart/form-data">
+                    <input type="hidden" name="idCategoria" th:field="*{idCategoria}"/>
+                    <section th:replace="~{categoria/fragmentos :: botonesEditar}"/>
+                    <div id="details">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white">
+                                            <h4>Actualizar</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="descripcion">Descripción</label>
+                                                <input type="text" class="form-control" 
+                                                       name="descripcion" th:field="*{descripcion}" required="true">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="activo">Activo</label>
+                                                <input class="form-check-input" 
+                                                       type="checkbox" 
+                                                       name="activo" 
+                                                       id="activo"
+                                                       th:field="*{activo}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5 Fragmento botones editar -->
+    <section th:fragment="botonesEditar">
+        <div class="container py-4 mb-4 bg-primary text-white rounded">
+            <div class="row">
+                <div class="col-md-4 d-grid">
+                    <a th:href="@{/categoria/listado}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Regresar
+                    </a>
+                </div>
+                <div class="col-md-4 d-grid"> 
+                    <a th:href="@{/categoria/eliminar/}+${categoria.idCategoria}" class="btn btn-outline-light">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                </div>
+                <div class="col-md-4 d-grid">
+                    <button type="submit" class="btn btn-outline-light">
+                        <i class="fas fa-check"></i> Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
